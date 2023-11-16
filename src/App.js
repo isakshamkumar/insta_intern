@@ -7,10 +7,10 @@ import store from './components/redux/store';
 export default function App() {
 
   return (
-    <Provider store={store}>
+   
       <div className="App">
         <Navigator/>
       </div>
-    </Provider>
+   
   );
 }

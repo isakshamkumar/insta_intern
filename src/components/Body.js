@@ -10,8 +10,9 @@ import { BsFillBookmarkFill } from "react-icons/bs";
 import { OverlayTest as ShowOverlay } from "../components/overlay/overlay";
 import { useMediaQuery } from 'react-responsive'
 import { useEffect } from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import { fetchUsers } from "../store/usersSlice";
 
 // function randomizeHomePosts(arr) {
 //   const shuffledArray = [...arr];
@@ -45,69 +46,72 @@ function HomeBookmark({ bookmark, onClick }) {
 // storing all props as array in a state then passing it to the overlay component is a good idea for now
 
 export default function Body() {
+  const dispatch = useDispatch()
   const [liked, setLiked] = useState(false);
   const [dataHome, setDataHome] = useState([]);
-  const userEmail = useSelector((state) => state.user.userEmail);
+  // const userEmail = useSelector((state) => state.user.userEmail);
   const navigate = useNavigate();
+  const users = useSelector(state => state.usersslice.users)
+  const [user, setusers] = useState([])
+  console.log(users);
+
   useEffect(() => {
-    const abortController = new AbortController();
-    const signal = abortController.signal;
-    fetch(`/api/home/${userEmail}`, {
-      headers: {
-        Accept: 'application/json',
-      },
-      signal,
-    })
-      .then(response => response.json())
-      .then(data => {
-        console.log('API Response Data:', data);
-        setDataHome(data);
-      })
-      .catch(error => {
-        console.error('Error fetching images links:', error);
-        setDataHome([]);
-      });
+    dispatch(fetchUsers())
+    
+    setTimeout(() => {
+      setusers(['vdvdvd'])
+      
+    }, 2000);
+   
+  }, [dispatch]);
+  let userArray = []
+  console.log(userArray, 'userAraayyyyemp');
+  if(users?.account){
 
-    return () => {
-      abortController.abort();
-    };
-  }, [userEmail]);
+    for (let i = 0; i < users.accounts.length; i++) {
+      let newArray = userArray.concat(users.accounts[i].posts)
+      userArray.concat(newArray)
+
+    }
+
+    console.log(userArray, 'userAraayyyy');
+  }
   //implement a system for unique like and for dataHome arrray index
-  const handleLike = async () => {
-    const postLikeUpdateData = {
-      likes: dataHome.image_link,
-      operation: "like",
-    }
-    const postDisLikeUpdateData = {
-      likes: dataHome.image_link,
-      operation: "dislike",
-    }
-    try {
-      // Toggle the liked state using the callback form of setLiked
-      setLiked((prevLiked) => !prevLiked);
+  // const handleLike = async () => {
+  //   const postLikeUpdateData = {
+  //     likes: dataHome.image_link,
+  //     operation: "like",
+  //   }
+  //   const postDisLikeUpdateData = {
+  //     likes: dataHome.image_link,
+  //     operation: "dislike",
+  //   }
+  //   try {
+  //     // Toggle the liked state using the callback form of setLiked
+  //     setLiked((prevLiked) => !prevLiked);
 
-      // Use the updated liked state to determine postUpdateData
-      const postUpdateData = liked ? postDisLikeUpdateData : postLikeUpdateData;
+  //     // Use the updated liked state to determine postUpdateData
+  //     const postUpdateData = liked ? postDisLikeUpdateData : postLikeUpdateData;
 
-      const response = await fetch(`/api/like/${userEmail}/${encodeURIComponent(dataHome.image_link.replace('https://firebasestorage.googleapis.com/v0/b/insta-clone-app-77662.appspot.com/o/', ''))}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(postUpdateData),
-      });
+  //     const response = await fetch(`/api/like/${userEmail}/${encodeURIComponent(dataHome.image_link.replace('https://firebasestorage.googleapis.com/v0/b/insta-clone-app-77662.appspot.com/o/', ''))}`, {
+  //       method: 'POST',
+  //       headers: {
+  //         'Content-Type': 'application/json',
+  //       },
+  //       body: JSON.stringify(postUpdateData),
+  //     });
 
-      if (response.ok) {
-        console.log('Data posted successfully to the backend!');
-      } else {
-        // Handle error response from the backend
-        console.error('Error posting data:', response.statusText);
-      }
-      // No need to setLiked(true) here, as it was already updated with the callback form
-    } catch (error) {
-      console.error('Error posting data:', error);
-    }
-  };
+  //     if (response.ok) {
+  //       console.log('Data posted successfully to the backend!');
+  //     } else {
+  //       // Handle error response from the backend
+  //       console.error('Error posting data:', response.statusText);
+  //     }
+  //     // No need to setLiked(true) here, as it was already updated with the callback form
+  //   } catch (error) {
+  //     console.error('Error posting data:', error);
+  //   }
+  // };
 
   const isDesktopOrLaptop = useMediaQuery({ query: '(min-width: 1224px)' })
   const isBigScreen = useMediaQuery({ query: '(min-width: 1824px)' })
@@ -160,15 +164,17 @@ export default function Body() {
         ))}
       </div>
       <div className="posts">
-        {dataHome && dataHome.length > 0 ? (
-          dataHome.map((account, index) => (
+        {users && users?.accounts?.length > 0 ? (
+          users.accounts[0].posts.map((account, index) => (
             <div className="post" key={index}>
-              <div className="individualpost" key={account.key}>
+              <div className="individualpost" key={account.number}>
                 <div className="postheader">
                   <div className="postheaderpartone">
                     {/* profile link to be fetched */}
-                    <img src={account.profilelink} alt={account.username} />
-                    <p onClick={() => handleNavigation(account.email)} className="postheadertopid">{account.username}</p>
+                    <img src={account.imageurl} alt={account.number} />
+                    <p className="postheadertopid">
+                      {/* {account.username} */}
+                    </p>
                     <p className="postheadertopduration">· 1 d</p>
                   </div>
                   <FiMoreHorizontal color="white" size={20} />
@@ -176,29 +182,34 @@ export default function Body() {
                 <div key={index}>
                   {/* implement double click like here */}
                   <div
-                    onDoubleClick={handleLike}
+                    // onDoubleClick={handleLike}
                     className="postimage"
                   >
-                    <img src={account.image_link} alt="" />
+                    <img src={account.imageurl} alt="" />
                   </div>
                   <div className="interactablepost">
                     <div className="interactablepostleft">
                       {liked ? (
-                        <AiFillHeart onClick={handleLike} size={25} color="white" style={{ paddingLeft: '7px', paddingRight: '7px', paddingTop: '7px', paddingBottom: '7px' }} />
+                        <AiFillHeart
+                          // onClick={handleLike}
+                          size={25} color="white" style={{ paddingLeft: '7px', paddingRight: '7px', paddingTop: '7px', paddingBottom: '7px' }} />
                       ) : (
-                        <AiOutlineHeart onClick={handleLike} size={25} color="white" style={{ paddingLeft: '7px', paddingRight: '7px', paddingTop: '7px', paddingBottom: '7px' }} />
+                        <AiOutlineHeart
+                          //  onClick={handleLike}
+                          size={25}
+                          color="white" style={{ paddingLeft: '7px', paddingRight: '7px', paddingTop: '7px', paddingBottom: '7px' }} />
                       )}
                       <FiMessageSquare
-                        onClick={() =>
-                          setShowOverlayState([
-                            true,
-                            account.username,
-                            account.caption,
-                            account.like,
-                            account.image_link,
-                            account.email,
-                          ])
-                        }
+                        // onClick={() =>
+                        //   setShowOverlayState([
+                        //     true,
+                        //     account.username,
+                        //     account.caption,
+                        //     account.like,
+                        //     account.image_link,
+                        //     account.email,
+                        //   ])
+                        // }
                         size={25}
                         color="white"
                         style={{
@@ -220,8 +231,8 @@ export default function Body() {
                     </div>
                     <div className="interactablepostright">
                       <HomeBookmark
-                        onClick={() => handleBookmark(account.username, index)}
-                        bookmark={bookmark.includes(`${account.username}+${index}`)}
+                      // onClick={() => handleBookmark(account.username, index)}
+                      // bookmark={bookmark.includes(`${account.username}+${index}`)}
                       />
                     </div>
                   </div>
