@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 
+
 export const fetchUsers = createAsyncThunk('users/fetchUsers', async () => {
   try {
     const response = await fetch("http://localhost:3005")
@@ -11,6 +12,9 @@ export const fetchUsers = createAsyncThunk('users/fetchUsers', async () => {
   }
 })
 
+
+
+
 const usersSlice = createSlice({
   name: 'post',
   initialState: {
@@ -19,6 +23,17 @@ const usersSlice = createSlice({
     error: null
   },
   reducers: {
+    likepost: (state, action) => {
+      const {userID, postID} = action.payload
+      const user = state.users.accounts.find((user) => user.id === userID);
+      if (user) {
+        const post = user.posts.find((post) => post.number === postID)
+      if (post){
+        post.likes += 1
+      }
+      }
+    },
+
     addPost: (state, action) => {
       const { id } = action.payload;
       const user = state.users.accounts.findIndex(user => user.id === id)
