@@ -7,6 +7,7 @@ import Reels from './components/Reels';
 import Profile from './components/Profile';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import './App.css';
+import Search from './components/Search';
 import HashLoader from "react-spinners/HashLoader";
 
 const cssOverride = {
@@ -40,8 +41,8 @@ export default function Navigator() {
           <Router>
             <Navigation />
             <Routes>
-              <Route exact path="/insta-clone-app/" element={<Home />} />
-              {/* <Route path='/Search' element={<Search />} /> */}
+              <Route exact path="/" element={<Home />} />
+              <Route path='/Search' element={<Search />} />
               <Route path='/Explore' element={<Explore />} />
               <Route path='/Reels' element={<Reels />} />
               {/* <Route path='/Messages' element={<Messages />} /> */}
