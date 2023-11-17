@@ -13,7 +13,7 @@ const commentSlice = createSlice({
   reducers: {
     addComment: (state, action) => {
       const { postId, comment } = action.payload;
-      dispatch(usersSlice.actions.addComment({ postId, comment }));
+      // dispatch(usersSlice.actions.addComment({ postId, comment }));
       
 
      

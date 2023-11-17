@@ -41,7 +41,17 @@ const usersSlice = createSlice({
           post.comment.push(comment)
         }
       }
-    }
+    },
+    likePost: (state, action) => {
+      const {userID, postID} = action.payload
+      const user = state.users.accounts.find((user) => user.id === userID);
+      if (user) {
+        const post = user.posts.find((post) => post.number === postID)
+      if (post){
+        post.likes += 1
+      }
+      }
+    },
   },
   extraReducers: (builder) => {
     builder

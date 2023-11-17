@@ -12,7 +12,8 @@ import { useMediaQuery } from 'react-responsive'
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { fetchUsers } from "../store/usersSlice";
+import usersSlice, { fetchUsers, usersliceActions } from "../store/usersSlice";
+import { addComment } from "../store/commentsSlice";
 
 // function randomizeHomePosts(arr) {
 //   const shuffledArray = [...arr];
@@ -48,70 +49,42 @@ function HomeBookmark({ bookmark, onClick }) {
 export default function Body() {
   const dispatch = useDispatch()
   const [liked, setLiked] = useState(false);
+  const [commentVisible, setCommentVisible] = useState(false)
+ 
   const [dataHome, setDataHome] = useState([]);
   // const userEmail = useSelector((state) => state.user.userEmail);
   const navigate = useNavigate();
   const users = useSelector(state => state.usersslice.users)
   const [user, setusers] = useState([])
-  console.log(users);
-
-  useEffect(() => {
-    dispatch(fetchUsers())
-    
-    setTimeout(() => {
-      setusers(['vdvdvd'])
-      
-    }, 2000);
-   
-  }, [dispatch]);
+  console.log(user, 'userssss');
   let userArray = []
-  console.log(userArray, 'userAraayyyyemp');
-  if(users?.account){
+  useEffect(() => {
+    dispatch(fetchUsers());
+    console.log('waiting for timeout');
 
-    for (let i = 0; i < users.accounts.length; i++) {
-      let newArray = userArray.concat(users.accounts[i].posts)
-      userArray.concat(newArray)
+    setTimeout(() => {
+      console.log('waited for timeout');
+      console.log(userArray, 'userAraayyyyemp');
+      console.log(users);
 
-    }
+      if (users?.accounts) {
+        let newArray = [];
+        for (let i = 0; i < users.accounts.length; i++) {
+          newArray = newArray.concat(users.accounts[i].posts);
+        }
 
-    console.log(userArray, 'userAraayyyy');
-  }
-  //implement a system for unique like and for dataHome arrray index
-  // const handleLike = async () => {
-  //   const postLikeUpdateData = {
-  //     likes: dataHome.image_link,
-  //     operation: "like",
-  //   }
-  //   const postDisLikeUpdateData = {
-  //     likes: dataHome.image_link,
-  //     operation: "dislike",
-  //   }
-  //   try {
-  //     // Toggle the liked state using the callback form of setLiked
-  //     setLiked((prevLiked) => !prevLiked);
+        console.log(newArray, 'new');
+        setusers(newArray);
+        console.log('setted users');
+      }
+    }, 2000);
+  }, []);
+  const [commentValue, setcommentValue] = useState('')
 
-  //     // Use the updated liked state to determine postUpdateData
-  //     const postUpdateData = liked ? postDisLikeUpdateData : postLikeUpdateData;
+const handleLike=()=>{
+  setLiked(!liked);
+}
 
-  //     const response = await fetch(`/api/like/${userEmail}/${encodeURIComponent(dataHome.image_link.replace('https://firebasestorage.googleapis.com/v0/b/insta-clone-app-77662.appspot.com/o/', ''))}`, {
-  //       method: 'POST',
-  //       headers: {
-  //         'Content-Type': 'application/json',
-  //       },
-  //       body: JSON.stringify(postUpdateData),
-  //     });
-
-  //     if (response.ok) {
-  //       console.log('Data posted successfully to the backend!');
-  //     } else {
-  //       // Handle error response from the backend
-  //       console.error('Error posting data:', response.statusText);
-  //     }
-  //     // No need to setLiked(true) here, as it was already updated with the callback form
-  //   } catch (error) {
-  //     console.error('Error posting data:', error);
-  //   }
-  // };
 
   const isDesktopOrLaptop = useMediaQuery({ query: '(min-width: 1224px)' })
   const isBigScreen = useMediaQuery({ query: '(min-width: 1824px)' })
@@ -130,7 +103,7 @@ export default function Body() {
   };
 
   //bookmark is currently not stored in firestore database
-  const [bookmark, setBookmark] = useState([]);
+  const [bookmark, setBookmark] = useState(false);
   const handleBookmark = (accountId, postNumber) => {
     const bookmarkId = `${accountId}+${postNumber}`;
     if (bookmark.includes(bookmarkId)) {
@@ -141,7 +114,48 @@ export default function Body() {
   };
   const handleNavigation = (targetEmail) => {
     navigate(`/profile?prop=${targetEmail}`)
+    console.log();
   }
+  const commentHandler = (number) => {
+    // setCommentVisible(!commentVisible)
+    let arrayToUpdate = user.findIndex(user => user.number === number)
+    // console.log(arrayToUpdate,'array to update');
+    if (arrayToUpdate !== -1) {
+      setusers((prevUsers) => {
+        const updatedArray = [...prevUsers];
+        updatedArray[arrayToUpdate] = {
+          ...updatedArray[arrayToUpdate],
+          commentVisible: !updatedArray[arrayToUpdate].commentVisible,
+        };
+        console.log(updatedArray, 'inside if');
+        return updatedArray;
+      });
+    }
+    console.log(arrayToUpdate, 'after update');
+  }
+  const commentChangeHandler = (e) => {
+    setcommentValue(e.target.value)
+    console.log(e.target.value);
+
+  }
+  const addCommentHandler = (postId) => {
+    let userId = "pushkarm029";
+    let post = user.findIndex((user) => user.number===postId );
+   console.log(post,'ppst se;ected');
+   console.log(commentValue,'commmentvalueeeeeeee');
+    if (post !== -1) {
+      setusers((prevUsers) => {
+        const updatedArray = [...prevUsers];
+        const updatedPost = { ...updatedArray[post] };
+        updatedPost.comment=[...updatedPost.comment, { userId, message: commentValue }];
+        updatedArray[post] = updatedPost;
+        return updatedArray;
+      });
+    }
+  // usersliceActions.addComment(postId,commentValue)
+  setcommentValue('')
+  };
+
   return (
     // implement story is not completed yet
     <div className="body">
@@ -164,8 +178,9 @@ export default function Body() {
         ))}
       </div>
       <div className="posts">
-        {users && users?.accounts?.length > 0 ? (
-          users.accounts[0].posts.map((account, index) => (
+        {user?.length > 0 ? (
+          user.map((account, index) => (
+            // {account.posts.map(post=>post)}
             <div className="post" key={index}>
               <div className="individualpost" key={account.number}>
                 <div className="postheader">
@@ -189,27 +204,18 @@ export default function Body() {
                   </div>
                   <div className="interactablepost">
                     <div className="interactablepostleft">
-                      {liked ? (
+                      {!liked ? (
                         <AiFillHeart
-                          // onClick={handleLike}
+                          onClick={handleLike}
                           size={25} color="white" style={{ paddingLeft: '7px', paddingRight: '7px', paddingTop: '7px', paddingBottom: '7px' }} />
                       ) : (
                         <AiOutlineHeart
-                          //  onClick={handleLike}
+                           onClick={handleLike}
                           size={25}
                           color="white" style={{ paddingLeft: '7px', paddingRight: '7px', paddingTop: '7px', paddingBottom: '7px' }} />
                       )}
                       <FiMessageSquare
-                        // onClick={() =>
-                        //   setShowOverlayState([
-                        //     true,
-                        //     account.username,
-                        //     account.caption,
-                        //     account.like,
-                        //     account.image_link,
-                        //     account.email,
-                        //   ])
-                        // }
+                        onClick={() => commentHandler(account.number)}
                         size={25}
                         color="white"
                         style={{
@@ -227,34 +233,67 @@ export default function Body() {
                           paddingTop: "7px",
                           paddingBottom: "7px",
                         }}
+                        onClick={()=>alert(account.imageurl)}
                       />
                     </div>
-                    <div className="interactablepostright">
-                      <HomeBookmark
-                      // onClick={() => handleBookmark(account.username, index)}
+                    <div style={bookmark?{backgroundColor:'white',height:'2rem',width:'2rem'}:{}}>
+                      {bookmark ?<HomeBookmark
+                      onClick={() =>setBookmark(!bookmark)}
                       // bookmark={bookmark.includes(`${account.username}+${index}`)}
-                      />
+                      />:<HomeBookmark size={25} color="white" style={{ paddingLeft: '7px', paddingRight: '7px', paddingTop: '7px', paddingBottom: '7px' }}
+                      onClick={() =>setBookmark(!bookmark)}
+                      // bookmark={bookmark.includes(`${account.username}+${index}`)}
+                      />}
+                      
                     </div>
                   </div>
                   <div className="postfooter">
-                    {liked ?
-                      (<p className="homeLikeMeter">{parseInt(account.like) + 1} Likes</p>)
+                    {!liked ?
+                      (<p className="homeLikeMeter">{parseInt(account.likes) + 1} Likes</p>)
                       :
-                      (<p className="homeLikeMeter">{account.like} Likes</p>)
+                      (<p className="homeLikeMeter">{account.like}{account.likes} Likes</p>)
                     }
                     <p className="homeLikeMeter"></p>
                     <div className="postfootercaption">
                       <p className="postFooterAccountName">{account.username}</p>
                       <p className="postFooterAccountCaption">{account.caption}</p>
                     </div>
-                    <p>1 comment</p>
+                    <div style={{ display: 'flex' }}>
+                      <input
+                        onChange={commentChangeHandler}
+                        type="text"
+                        value={commentValue}
+                        placeholder="Add a comment..."
+                        style={{
+                          backgroundColor: 'black',
+                          color: 'white',
+                          border: 'none',
+                          fontSize: '1rem',
+                          width: '100%',
+                          padding: '8px',
+                          outline: 'none',
+                        }}
+                      />
+
+                      <div onClick={() => addCommentHandler(account.number)} style={{ width: '20%', backgroundColor: 'black', color: '#0095f6', height: '2px' }}>Add</div>
+                    </div>
+                      {/* {account.comment.map(comment=><p>{comment.message.length} {comment.message.length > 1 ? 'Comments' : 'Comment'} </p>)} */}
+                    
+                    {account.commentVisible !== commentVisible ? (
+                        <p>{account.comment.map(comment => <div>{comment.message}</div>)}</p>
+                      ) : (
+                        <p>No Comments</p>
+                      )
+                    }
+
+
                   </div>
                 </div>
               </div>
             </div>
           ))
         ) : (
-          <p>No post available</p>
+          <p>Loading Posts....</p>
         )}
       </div>
     </div>
