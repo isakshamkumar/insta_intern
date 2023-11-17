@@ -18,7 +18,7 @@ const commentSlice = createSlice({
       
 
 
-      dispatch(usersSlice.actions.addComment({ postId, comment }));
+      // dispatch(usersSlice.actions.addComment({ postId, comment }));
 
      
     },
